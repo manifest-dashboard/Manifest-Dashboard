@@ -396,7 +396,8 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
     <button class="nav-btn" onclick="flip(1)">Next →</button>
   </div>
   <div class="topbar-right">
-    <div class="tb-btn" onclick="openModal('apps')"><span class="tb-icon">⚙️</span><span class="tb-lbl">Apps</span></div>
+    <div class="tb-btn" onclick="openModal('apps')"><span class="tb-icon">🎛️</span><span class="tb-lbl">Apps</span></div>
+    <div class="tb-btn" onclick="openModal('settings')"><span class="tb-icon">⚙️</span><span class="tb-lbl">Settings</span></div>
     <div class="tb-btn cal-trigger" onclick="toggleCal()"><span class="tb-icon">📅</span><span class="tb-lbl">Calendar</span></div>
     <div class="tb-btn" onclick="openModal('monthly')"><span class="tb-icon">🎯</span><span class="tb-lbl">Monthly</span></div>
     <div class="tb-btn" onclick="openModal('wins')"><span class="tb-icon">🏆</span><span class="tb-lbl">Wins</span></div>
@@ -1749,7 +1750,7 @@ buildNotesList();
 
 // ── RETAINERS ──
 let retainers=(()=>{ try{return JSON.parse(localStorage.getItem('cmd_retainers')||'null');}catch(e){} return null; })()
-  ||[{id:'soursop',emoji:'🌿',name:'Soursop',type:'AI Avatar',renewal:'2026-04-15',goal:30,fee:500,commission:'10%',color:'soursop',tasks:[{t:'3 converting hooks',done:false,scrapped:false},{t:'Batch film system',done:false,scrapped:false},{t:'Post to TikTok/Reels/Shorts',done:false,scrapped:false}]},{id:'showerhead',emoji:'🚿',name:'Showerhead',type:'AI Avatar',renewal:'2026-04-03',goal:30,fee:500,commission:'$100/sale',color:'showerhead',tasks:[{t:'Script Yuna Noona week 1',done:false,scrapped:false},{t:'HeyGen avatar setup',done:false,scrapped:false},{t:'Create affiliate links',done:false,scrapped:false},{t:'Set up socials + email',done:false,scrapped:false},{t:'Veo B-roll shots',done:false,scrapped:false}]},{id:'neurogum',emoji:'🧠',name:'Neurogum',type:'TikTok Shop',renewal:'2026-05-01',goal:30,fee:0,commission:'15%',color:'neurogum',trackLives:true,tasks:[{t:'Go live today',done:false,scrapped:false},{t:'5 hook styles',done:false,scrapped:false},{t:'First sale tracked',done:false,scrapped:false}]},{id:'nmn',emoji:'🔬',name:'NMN',type:'TikTok Shop',renewal:'2026-04-20',goal:30,fee:0,commission:'10%',color:'nmn',tasks:[{t:'Longevity angle script',done:false,scrapped:false},{t:'2 weeks of scripts',done:false,scrapped:false},{t:'Cross-post system',done:false,scrapped:false}]}];
+  ||[{id:'soursop',emoji:'🌿',name:'Soursop',type:'AI Avatar',renewal:'2026-04-15',goal:30,fee:500,commission:'10%',color:'soursop',tasks:[{t:'3 converting hooks',done:false,scrapped:false},{t:'Batch film system',done:false,scrapped:false},{t:'Post to TikTok/Reels/Shorts',done:false,scrapped:false}]},{id:'showerhead',emoji:'🚿',name:'Showerhead',type:'AI Avatar',renewal:'2026-04-03',goal:30,fee:500,commission:'$100/sale',color:'showerhead',tasks:[{t:'Script week 1',done:false,scrapped:false},{t:'HeyGen avatar setup',done:false,scrapped:false},{t:'Create affiliate links',done:false,scrapped:false},{t:'Set up socials + email',done:false,scrapped:false},{t:'Veo B-roll shots',done:false,scrapped:false}]},{id:'neurogum',emoji:'🧠',name:'Neurogum',type:'TikTok Shop',renewal:'2026-05-01',goal:30,fee:0,commission:'15%',color:'neurogum',trackLives:true,tasks:[{t:'Go live today',done:false,scrapped:false},{t:'5 hook styles',done:false,scrapped:false},{t:'First sale tracked',done:true,scrapped:false}]},{id:'nmn',emoji:'🔬',name:'NMN',type:'TikTok Shop',renewal:'2026-04-20',goal:30,fee:0,commission:'10%',color:'nmn',tasks:[{t:'Longevity angle script',done:false,scrapped:false},{t:'2 weeks of scripts',done:false,scrapped:false},{t:'Cross-post system',done:false,scrapped:false}]}];
 function saveRetainers(){ try{localStorage.setItem('cmd_retainers',JSON.stringify(retainers));}catch(e){} syncRetainersToSupabase(); }
 function cleanupRetainerTasks() {
   var lastCleanup = localStorage.getItem('cmd_ret_tasks_cleanup');
@@ -2093,7 +2094,7 @@ function deleteRetTask() {
 <!-- MODALS -->
 <div class="modal-overlay" id="modal-apps">
   <div class="modal">
-    <div class="modal-title">⚙️ Apps <button class="modal-close" onclick="closeModal('apps')">✕</button></div>
+    <div class="modal-title">🎛️ Apps <button class="modal-close" onclick="closeModal('apps')">✕</button></div>
     <div class="modal-sub">Toggle apps on or off</div>
     <div class="app-item">
       <div class="app-icon">📋</div>

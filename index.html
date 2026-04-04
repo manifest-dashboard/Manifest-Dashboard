@@ -376,7 +376,7 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
 .ret-task-check.done{background:#00c44f;border-color:#00c44f;color:#fff;}
 .ret-task-check.done::after{content:'✓';}
 .ret-task-check.scrapped{background:rgba(0,0,0,0.1);}
-.ret-tasks{max-height:120px;overflow-y:auto;}
+.ret-tasks{}
 ::-webkit-scrollbar{width:4px;height:4px;}
 ::-webkit-scrollbar-thumb{background:var(--purple);border-radius:3px;}
 </style>
@@ -1751,6 +1751,21 @@ buildNotesList();
 let retainers=(()=>{ try{return JSON.parse(localStorage.getItem('cmd_retainers')||'null');}catch(e){} return null; })()
   ||[{id:'soursop',emoji:'🌿',name:'Soursop',type:'AI Avatar',renewal:'2026-04-15',goal:30,fee:500,commission:'10%',color:'soursop',tasks:[{t:'3 converting hooks',done:false,scrapped:false},{t:'Batch film system',done:false,scrapped:false},{t:'Post to TikTok/Reels/Shorts',done:false,scrapped:false}]},{id:'showerhead',emoji:'🚿',name:'Showerhead',type:'AI Avatar',renewal:'2026-04-03',goal:30,fee:500,commission:'$100/sale',color:'showerhead',tasks:[{t:'Script Yuna Noona week 1',done:false,scrapped:false},{t:'HeyGen avatar setup',done:false,scrapped:false},{t:'Create affiliate links',done:false,scrapped:false},{t:'Set up socials + email',done:false,scrapped:false},{t:'Veo B-roll shots',done:false,scrapped:false}]},{id:'neurogum',emoji:'🧠',name:'Neurogum',type:'TikTok Shop',renewal:'2026-05-01',goal:30,fee:0,commission:'15%',color:'neurogum',trackLives:true,tasks:[{t:'Go live today',done:false,scrapped:false},{t:'5 hook styles',done:false,scrapped:false},{t:'First sale tracked',done:false,scrapped:false}]},{id:'nmn',emoji:'🔬',name:'NMN',type:'TikTok Shop',renewal:'2026-04-20',goal:30,fee:0,commission:'10%',color:'nmn',tasks:[{t:'Longevity angle script',done:false,scrapped:false},{t:'2 weeks of scripts',done:false,scrapped:false},{t:'Cross-post system',done:false,scrapped:false}]}];
 function saveRetainers(){ try{localStorage.setItem('cmd_retainers',JSON.stringify(retainers));}catch(e){} syncRetainersToSupabase(); }
+function cleanupRetainerTasks() {
+  var lastCleanup = localStorage.getItem('cmd_ret_tasks_cleanup');
+  var thisSunday = getSunday(new Date()).getTime().toString();
+  if (lastCleanup === thisSunday) return;
+  var changed = false;
+  retainers.forEach(function(r) {
+    if (!r.tasks) return;
+    var before = r.tasks.length;
+    r.tasks = r.tasks.filter(function(t) { return !t.done && !t.scrapped; });
+    if (r.tasks.length !== before) changed = true;
+  });
+  if (changed) saveRetainers();
+  localStorage.setItem('cmd_ret_tasks_cleanup', thisSunday);
+}
+cleanupRetainerTasks();
 function loadBC(){ try{return JSON.parse(localStorage.getItem('cmd_bc')||'{}');}catch(e){return {};} }
 function saveBC(bc){ try{localStorage.setItem('cmd_bc',JSON.stringify(bc));}catch(e){} syncBrandCountsToSupabase(); }
 function getRCount(r,type){ const c=loadBC(),n=new Date(); return c[r.id+'_'+n.getFullYear()+'_'+n.getMonth()+'_'+type]||0; }
@@ -2052,13 +2067,20 @@ function retCtxMenu(e, id, ti) {
     const el=document.createElement('div');
     el.id='ret-ctx';
     el.style.cssText='position:fixed;background:#1a0a2e;border:1.5px solid #ff6b9d;border-radius:8px;padding:4px;z-index:9999;display:none;box-shadow:0 8px 24px rgba(0,0,0,0.5);';
-    el.innerHTML=`<div onclick="deleteRetTask()" style="padding:7px 14px;font-size:12px;font-weight:600;color:#ff6b9d;cursor:pointer;border-radius:5px;" onmouseover="this.style.background='rgba(255,107,157,0.15)'" onmouseout="this.style.background=''">🗑 Delete task</div>`;
+    el.innerHTML=`<div onclick="editRetTask()" style="padding:7px 14px;font-size:12px;font-weight:600;color:#e0d0ff;cursor:pointer;border-radius:5px;" onmouseover="this.style.background='#ffffff14'" onmouseout="this.style.background=''">✏️ Edit task</div><div onclick="deleteRetTask()" style="padding:7px 14px;font-size:12px;font-weight:600;color:#ff6b9d;cursor:pointer;border-radius:5px;" onmouseover="this.style.background='rgba(255,107,157,0.15)'" onmouseout="this.style.background=''">🗑 Delete task</div>`;
     document.body.appendChild(el); return el;
   })();
   m._retId=id; m._retTi=ti;
   m.style.display='block'; m.style.left=e.clientX+'px'; m.style.top=e.clientY+'px';
   const close=()=>{ m.style.display='none'; document.removeEventListener('click',close); };
   setTimeout(()=>document.addEventListener('click',close),0);
+}
+function editRetTask() {
+  const m=document.getElementById('ret-ctx'); if(!m) return;
+  const r=retainers.find(x=>x.id===m._retId); if(!r||!r.tasks) return;
+  const t=r.tasks[m._retTi]; if(!t) return;
+  const newText=prompt('Edit task:',t.t);
+  if(newText!==null&&newText.trim()){ t.t=newText.trim(); saveRetainers(); buildCenterApps(); }
 }
 function deleteRetTask() {
   const m=document.getElementById('ret-ctx'); if(!m) return;

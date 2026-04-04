@@ -55,7 +55,7 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
 .gb-star{position:absolute;top:4px;right:6px;font-size:11px;color:transparent;cursor:pointer;transition:color 0.15s;user-select:none;z-index:2;}
 .goal-bubble:hover .gb-star{color:rgba(255,255,255,0.25);}
 .gb-star.active{color:#f9e000 !important;}
-.goal-bubble.imp{background:rgba(249,224,0,0.25);border-color:#f9e000;}
+.goal-bubble.imp{background:rgba(249,224,0,0.25) !important;border-color:#f9e000 !important;}
 .bubble-x{position:absolute;inset:0;display:none;align-items:center;justify-content:center;pointer-events:none;}
 .bubble-zz{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;}
 .goal-bubble.done .bubble-x{display:flex;}
@@ -65,9 +65,9 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
 .to-item:hover .gi-star{color:rgba(0,0,0,0.2);}
 .gi-star.active{color:#f9e000 !important;}
 .gi.imp-row .gi-star.active{color:#fff !important;}
-.sl-task.imp{border:1.5px solid #f9e000;border-radius:5px;padding:4px 7px;margin-bottom:2px;}
-.to-item.imp{background:var(--yellow);border-radius:4px;padding:4px 6px;margin-bottom:2px;}
-.to-item.done.imp,.to-item.scrapped.imp{background:rgba(249,224,0,0.4);}
+.sl-task.imp{outline:1.5px solid #f9e000;outline-offset:-1px;border-radius:5px;}
+.to-item.imp{background:var(--yellow);border-radius:4px;}
+.to-item.done.imp,.to-item.scrapped.imp{background:rgba(249,224,0,0.4);border-radius:4px;}
 /* WEEK GRID */
 .page{position:relative;z-index:1;padding:12px 16px;}
 .week-split{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
@@ -253,14 +253,14 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
 .mg-star,.item-star{font-size:11px;color:transparent;cursor:pointer;transition:color 0.15s;user-select:none;flex-shrink:0;padding-left:4px;}
 .mg-row:hover .mg-star,.item-row:hover .item-star{color:rgba(255,255,255,0.25);}
 .mg-star.active,.item-star.active{color:#f9e000 !important;}
-.mg-row.imp{border:1.5px solid #f9e000;border-radius:5px;padding:4px 6px;margin-bottom:2px;}
-.item-row.imp{border:1.5px solid #f9e000;border-radius:5px;padding:4px 6px;margin-bottom:2px;}
+.mg-row.imp{outline:1.5px solid #f9e000;outline-offset:-1px;border-radius:5px;}
+.item-row.imp{outline:1.5px solid #f9e000;outline-offset:-1px;border-radius:5px;}
 .drag-handle{font-size:11px;color:rgba(255,255,255,0.2);cursor:grab;flex-shrink:0;user-select:none;padding-left:4px;}
 .drag-handle:hover{color:rgba(255,255,255,0.5);}
 .mg-modal-star{font-size:11px;color:transparent;cursor:pointer;transition:color 0.15s;user-select:none;flex-shrink:0;padding-left:4px;}
 .mg-modal-row:hover .mg-modal-star{color:rgba(255,255,255,0.25);}
 .mg-modal-star.active{color:#f9e000 !important;}
-.mg-modal-row.imp{background:rgba(249,224,0,0.15);border-radius:4px;padding:6px 8px;}
+.mg-modal-row.imp{background:rgba(249,224,0,0.15);border-radius:4px;}
 .mg-modal-handle{font-size:11px;color:rgba(255,255,255,0.2);cursor:grab;flex-shrink:0;padding-left:4px;user-select:none;}
 .mg-modal-handle:hover{color:rgba(255,255,255,0.5);}
 .notes-ta{width:100%;background:#ffffff11;border:1px solid #ffffff22;border-radius:7px;padding:8px;font-family:'DM Sans',sans-serif;font-size:12px;color:#e0d0ff;outline:none;resize:vertical;min-height:90px;line-height:1.5;}
@@ -333,7 +333,7 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
 .bb{padding:7px 10px;}
 .bpl{font-size:11px;font-weight:800;text-transform:uppercase;color:#000;margin-bottom:1px;}
 .bpc{font-family:'Righteous',sans-serif;font-size:20px;color:#000;cursor:pointer;}
-.bpb{height:4px;background:rgba(0,0,0,0.15);border-radius:0;overflow:hidden;position:absolute;bottom:0;left:0;right:0;}
+.bpb{height:8px;background:rgba(0,0,0,0.1);border-radius:100px;overflow:hidden;margin:8px 12px 0;position:relative;}
 .bpf{height:100%;border-radius:100px;transition:width 0.4s;}
 .brc{font-size:12px;color:#555;}
 .brd{font-size:14px;font-weight:700;color:#000;margin-bottom:4px;}
@@ -473,8 +473,9 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
       <div id="item-list"></div>
     </div>
     <div class="rs-sec">
-      <div class="rs-title notes">Notes</div>
-      <textarea class="notes-ta" id="notes-ta" placeholder="Write anything — ideas, follow-ups, time preferences..." rows="6"></textarea>
+      <div class="rs-title notes" onclick="openModal('notes-editor')" style="cursor:pointer" title="Click to manage notes">Notes</div>
+      <div id="notes-list"></div>
+      <button onclick="addNote()" style="width:100%;margin-top:6px;background:#ffffff11;border:1.5px solid #ffffff22;border-radius:5px;padding:5px;font-size:14px;font-weight:700;color:#ffffff44;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;">+</button>
     </div>
   </div><!-- /sidebar-right -->
 
@@ -1663,6 +1664,88 @@ function deleteItemHistory(i) {
 checkWeeklyItemCleanup();
 buildItemList();
 
+// ── NOTES SYSTEM ──
+function loadNotes() {
+  try { return JSON.parse(localStorage.getItem('cmd_notes') || 'null'); } catch(e) {} return null;
+}
+function saveNotes(notes) {
+  try { localStorage.setItem('cmd_notes', JSON.stringify(notes)); } catch(e) {}
+}
+function getNotes() {
+  var notes = loadNotes();
+  if (!notes) {
+    notes = [{ id: 'n' + Date.now(), title: 'Notes', text: '', visible: true }];
+    saveNotes(notes);
+  }
+  return notes;
+}
+function addNote() {
+  var notes = getNotes();
+  notes.push({ id: 'n' + Date.now(), title: 'Note ' + (notes.length + 1), text: '', visible: true });
+  saveNotes(notes);
+  buildNotesList();
+}
+function buildNotesList() {
+  var el = document.getElementById('notes-list'); if (!el) return;
+  var notes = getNotes();
+  el.innerHTML = notes.filter(function(n) { return n.visible; }).map(function(n) {
+    return '<div style="margin-bottom:8px;">' +
+      '<div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9a8ab0;margin-bottom:3px;">' + n.title + '</div>' +
+      '<textarea class="notes-ta" placeholder="Write anything..." rows="4" oninput="updateNote(\'' + n.id + '\',this.value)">' + (n.text || '') + '</textarea>' +
+    '</div>';
+  }).join('') || '<div style="font-size:11px;color:#9a8ab0;font-style:italic;padding:6px 0">No visible notes. Click Notes to manage.</div>';
+}
+function updateNote(id, text) {
+  var notes = getNotes();
+  var note = notes.find(function(n) { return n.id === id; });
+  if (note) { note.text = text; saveNotes(notes); }
+}
+function buildNotesEditor() {
+  var el = document.getElementById('notes-editor-list'); if (!el) return;
+  var notes = getNotes();
+  el.innerHTML = notes.map(function(n, i) {
+    return '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px dashed #ffffff1a;" draggable="true" ondragstart="noteDragStart(event,' + i + ')" ondragover="noteDragOver(event)" ondrop="noteDrop(event,' + i + ')">' +
+      '<span class="mg-modal-handle">≡</span>' +
+      '<input value="' + n.title + '" oninput="noteRename(\'' + n.id + '\',this.value)" style="flex:1;background:#ffffff11;border:1px solid #ffffff22;border-radius:5px;padding:5px 8px;font-family:DM Sans,sans-serif;font-size:12px;color:#fff;outline:none;">' +
+      '<button onclick="toggleNoteVis(\'' + n.id + '\')" style="background:' + (n.visible ? '#00c44f' : '#ffffff22') + ';border:none;border-radius:5px;padding:4px 10px;font-size:10px;font-weight:700;color:#fff;cursor:pointer;font-family:DM Sans,sans-serif;">' + (n.visible ? 'Visible' : 'Hidden') + '</button>' +
+      '<button onclick="deleteNote(\'' + n.id + '\')" style="background:rgba(255,107,157,0.15);border:1px solid #ff6b9d;border-radius:5px;padding:4px 8px;color:#ff6b9d;cursor:pointer;font-size:10px;font-family:DM Sans,sans-serif;">✕</button>' +
+    '</div>';
+  }).join('') || '<div style="font-size:12px;color:#9a8ab0;padding:8px 0;font-style:italic">No notes yet.</div>';
+}
+function noteRename(id, title) {
+  var notes = getNotes();
+  var n = notes.find(function(x) { return x.id === id; });
+  if (n) { n.title = title; saveNotes(notes); }
+}
+function toggleNoteVis(id) {
+  var notes = getNotes();
+  var n = notes.find(function(x) { return x.id === id; });
+  if (n) { n.visible = !n.visible; saveNotes(notes); buildNotesEditor(); buildNotesList(); }
+}
+function deleteNote(id) {
+  if (!confirm('Delete this note?')) return;
+  var notes = getNotes();
+  notes = notes.filter(function(x) { return x.id !== id; });
+  saveNotes(notes);
+  buildNotesEditor();
+  buildNotesList();
+}
+var noteDragIdx = null;
+function noteDragStart(e, i) { noteDragIdx = i; e.dataTransfer.effectAllowed = 'move'; }
+function noteDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }
+function noteDrop(e, targetIdx) {
+  e.preventDefault();
+  if (noteDragIdx === null || noteDragIdx === targetIdx) return;
+  var notes = getNotes();
+  var item = notes.splice(noteDragIdx, 1)[0];
+  notes.splice(targetIdx, 0, item);
+  saveNotes(notes);
+  noteDragIdx = null;
+  buildNotesEditor();
+  buildNotesList();
+}
+buildNotesList();
+
 // ── RETAINERS ──
 let retainers=(()=>{ try{return JSON.parse(localStorage.getItem('cmd_retainers')||'null');}catch(e){} return null; })()
   ||[{id:'soursop',emoji:'🌿',name:'Soursop',type:'AI Avatar',renewal:'2026-04-15',goal:30,fee:500,commission:'10%',color:'soursop',tasks:[{t:'3 converting hooks',done:false,scrapped:false},{t:'Batch film system',done:false,scrapped:false},{t:'Post to TikTok/Reels/Shorts',done:false,scrapped:false}]},{id:'showerhead',emoji:'🚿',name:'Showerhead',type:'AI Avatar',renewal:'2026-04-03',goal:30,fee:500,commission:'$100/sale',color:'showerhead',tasks:[{t:'Script Yuna Noona week 1',done:false,scrapped:false},{t:'HeyGen avatar setup',done:false,scrapped:false},{t:'Create affiliate links',done:false,scrapped:false},{t:'Set up socials + email',done:false,scrapped:false},{t:'Veo B-roll shots',done:false,scrapped:false}]},{id:'neurogum',emoji:'🧠',name:'Neurogum',type:'TikTok Shop',renewal:'2026-05-01',goal:30,fee:0,commission:'15%',color:'neurogum',trackLives:true,tasks:[{t:'Go live today',done:false,scrapped:false},{t:'5 hook styles',done:false,scrapped:false},{t:'First sale tracked',done:false,scrapped:false}]},{id:'nmn',emoji:'🔬',name:'NMN',type:'TikTok Shop',renewal:'2026-04-20',goal:30,fee:0,commission:'10%',color:'nmn',tasks:[{t:'Longevity angle script',done:false,scrapped:false},{t:'2 weeks of scripts',done:false,scrapped:false},{t:'Cross-post system',done:false,scrapped:false}]}];
@@ -1715,8 +1798,8 @@ function buildRetainerHTML(){
           </div>
           <div onclick="event.stopPropagation();bumpRCount('${r.id}','posts')" title="Add 1 post" style="width:24px;height:24px;background:rgba(0,0,0,0.06);border:1.5px solid rgba(0,0,0,0.15);border-radius:5px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;font-weight:700;color:#333;transition:all 0.15s;">▲</div>
         </div>
-        <div class="bpb"><div class="bpf" style="width:${pct}%;background:${clrs[r.color]||'#c4a0ff'}"></div></div>
       </div>
+      <div class="bpb"><div class="bpf" style="width:${pct}%;background:${clrs[r.color]||'#c4a0ff'}"></div></div>
       <div class="bb">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
           <div>
@@ -1754,7 +1837,31 @@ function buildRetainerHTML(){
 
 function buildRetainerEditor(){
   const el=document.getElementById('ret-editor-list'); if(!el) return;
-  el.innerHTML=retainers.map((r,i)=>`<div style="background:#ffffff08;border:1px solid #ffffff14;border-radius:9px;padding:12px;margin-bottom:10px;"><div style="display:flex;align-items:center;gap:9px;margin-bottom:10px;"><span style="font-size:18px">${r.emoji}</span><span style="font-size:14px;font-weight:700;color:#fff">${r.name}</span><button onclick="dropRetainer('${r.id}')" style="margin-left:auto;background:rgba(255,107,157,0.15);border:1px solid #ff6b9d;border-radius:5px;padding:3px 9px;color:#ff6b9d;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:11px;">Drop</button></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;"><div class="ret-field"><label>Emoji</label><input value="${r.emoji}" oninput="retainers[${i}].emoji=this.value;saveRetainers()"></div><div class="ret-field"><label>Name</label><input value="${r.name}" oninput="retainers[${i}].name=this.value;saveRetainers()"></div><div class="ret-field"><label>Type</label><select onchange="retainers[${i}].type=this.value;saveRetainers()"><option ${r.type==='AI Avatar'?'selected':''}>AI Avatar</option><option ${r.type==='TikTok Shop'?'selected':''}>TikTok Shop</option><option ${r.type==='Other'?'selected':''}>Other</option></select></div><div class="ret-field"><label>Goal</label><input type="number" value="${r.goal}" oninput="retainers[${i}].goal=+this.value||30;saveRetainers()"></div><div class="ret-field"><label>Renewal</label><input type="date" value="${r.renewal}" oninput="retainers[${i}].renewal=this.value;saveRetainers()"></div><div class="ret-field"><label>Retainer $</label><input type="number" value="${r.fee||0}" oninput="retainers[${i}].fee=+this.value||0;saveRetainers()"></div><div class="ret-field"><label>Commission</label><input value="${r.commission}" oninput="retainers[${i}].commission=this.value;saveRetainers()"></div><div class="ret-field"><label>Track Lives</label><select onchange="retainers[${i}].trackLives=this.value==='yes';saveRetainers()"><option value="no" ${!r.trackLives?'selected':''}>No</option><option value="yes" ${r.trackLives?'selected':''}>Yes</option></select></div></div><div style="display:flex;align-items:center;gap:8px;margin-top:8px;"><div class="ret-field" style="flex:1;margin:0"><label>Posts</label><input type="number" value="${getRCount(r,'posts')}" min="0" onchange="setRCount(retainers[${i}],'posts',Math.max(0,+this.value));buildCenterApps()" style="width:100%"></div><button onclick="resetRCount('${r.id}','posts');this.closest('[style*=background]').querySelector('input[type=number]').value=0" style="background:rgba(255,107,157,0.15);border:1px solid #ff6b9d;border-radius:5px;padding:5px 12px;color:#ff6b9d;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;margin-top:14px;">Reset</button></div></div>`).join('');
+  el.innerHTML=retainers.map((r,i)=>{
+    const hidden = r.hidden ? true : false;
+    return `<div style="background:#ffffff08;border:1px solid #ffffff14;border-radius:9px;padding:12px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:${hidden?'0':'10'}px;">
+        <span style="font-size:18px">${r.emoji}</span>
+        <span style="font-size:14px;font-weight:700;color:#fff">${r.name}</span>
+        <button onclick="retainers[${i}].hidden=!retainers[${i}].hidden;saveRetainers();buildRetainerEditor()" style="margin-left:auto;background:#ffffff14;border:1px solid #ffffff22;border-radius:5px;padding:3px 9px;color:#9a8ab0;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:11px;">${hidden?'Show':'Hide'}</button>
+        <button onclick="dropRetainer('${r.id}')" style="background:rgba(255,107,157,0.15);border:1px solid #ff6b9d;border-radius:5px;padding:3px 9px;color:#ff6b9d;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:11px;">Drop</button>
+      </div>
+      ${hidden?'':`<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;">
+        <div class="ret-field"><label>Emoji</label><input value="${r.emoji}" oninput="retainers[${i}].emoji=this.value;saveRetainers()"></div>
+        <div class="ret-field"><label>Name</label><input value="${r.name}" oninput="retainers[${i}].name=this.value;saveRetainers()"></div>
+        <div class="ret-field"><label>Type</label><select onchange="retainers[${i}].type=this.value;saveRetainers()"><option ${r.type==='AI Avatar'?'selected':''}>AI Avatar</option><option ${r.type==='TikTok Shop'?'selected':''}>TikTok Shop</option><option ${r.type==='Other'?'selected':''}>Other</option></select></div>
+        <div class="ret-field"><label>Goal</label><input type="number" value="${r.goal}" oninput="retainers[${i}].goal=+this.value||30;saveRetainers()"></div>
+        <div class="ret-field"><label>Renewal</label><input type="date" value="${r.renewal}" oninput="retainers[${i}].renewal=this.value;saveRetainers()"></div>
+        <div class="ret-field"><label>Retainer $</label><input type="number" value="${r.fee||0}" oninput="retainers[${i}].fee=+this.value||0;saveRetainers()"></div>
+        <div class="ret-field"><label>Commission</label><input value="${r.commission}" oninput="retainers[${i}].commission=this.value;saveRetainers()"></div>
+        <div class="ret-field"><label>Track Lives</label><select onchange="retainers[${i}].trackLives=this.value==='yes';saveRetainers()"><option value="no" ${!r.trackLives?'selected':''}>No</option><option value="yes" ${r.trackLives?'selected':''}>Yes</option></select></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+        <div class="ret-field" style="width:80px;margin:0;flex-shrink:0"><label>Posts</label><input type="number" value="${getRCount(r,'posts')}" min="0" onchange="setRCount(retainers[${i}],'posts',Math.max(0,+this.value));buildCenterApps()"></div>
+        <button onclick="resetRCount('${r.id}','posts');buildRetainerEditor()" style="background:rgba(255,107,157,0.15);border:1px solid #ff6b9d;border-radius:5px;padding:5px 12px;color:#ff6b9d;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;margin-top:14px;">Reset</button>
+      </div>`}
+    </div>`;
+  }).join('');
 }
 
 // ── WOTD ──
@@ -1830,6 +1937,7 @@ openModal = function(id) {
   if(id==='sched-editor') openSchedEditor();
   if(id==='item-history') buildItemHistoryModal();
   if(id==='wins') buildWinsModal();
+  if(id==='notes-editor') buildNotesEditor();
   if(id==='settings') {
     const n=document.getElementById('display-name'); if(n) n.value=userSettings.name||'';
     document.querySelectorAll('.sleep-preset').forEach(b=>b.classList.remove('active-preset'));
@@ -2047,6 +2155,15 @@ function deleteRetTask() {
     <div id="item-history-current"></div>
     <div style="font-size:9px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:#7a6a9a;margin:14px 0 10px;padding-top:12px;border-top:1px solid #ffffff11;">Completed</div>
     <div id="item-history-done"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-notes-editor">
+  <div class="modal">
+    <div class="modal-title">📝 Notes Editor <button class="modal-close" onclick="closeModal('notes-editor')">✕</button></div>
+    <div class="modal-sub">Manage, reorder, and show/hide notes</div>
+    <div id="notes-editor-list"></div>
+    <button onclick="addNote();buildNotesEditor()" style="margin-top:10px;padding:9px 18px;background:#00c44f;border:none;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;color:#fff;cursor:pointer;">+ Add Note</button>
   </div>
 </div>
 

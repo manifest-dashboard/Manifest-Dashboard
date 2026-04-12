@@ -400,6 +400,9 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
     <button class="nav-btn" onclick="flip(1)">Next →</button>
     <button class="nav-btn" onclick="addPage()" title="Add a freeform page">📄 + Page</button>
   </div>
+  <div id="timeline-slider-wrap" style="padding:2px 16px 4px;text-align:center;">
+    <input type="range" id="timeline-slider" style="width:100%;appearance:none;-webkit-appearance:none;height:4px;background:#1a0a2e;border-radius:2px;outline:none;cursor:pointer;" oninput="onTimelineSlide(this.value)">
+  </div>
   <div class="topbar-right">
     <div class="tb-btn" onclick="openModal('apps')"><span class="tb-icon">🎛️</span><span class="tb-lbl">Apps</span></div>
     <div class="tb-btn" onclick="openModal('settings')"><span class="tb-icon">⚙️</span><span class="tb-lbl">Settings</span></div>
@@ -466,10 +469,6 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
           <div id="hw2"></div>
         </div>
       </div>
-    </div>
-    <div id="timeline-slider-wrap" style="padding:4px 16px 8px;text-align:center;">
-      <div id="timeline-slider-label" style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#9a8ab0;margin-bottom:2px;"></div>
-      <input type="range" id="timeline-slider" style="width:100%;appearance:none;-webkit-appearance:none;height:4px;background:#1a0a2e;border-radius:2px;outline:none;cursor:pointer;" oninput="onTimelineSlide(this.value)">
     </div>
     <div id="center-apps"></div>
   </div><!-- /main-col -->

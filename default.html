@@ -400,6 +400,9 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
     <button class="nav-btn" onclick="flip(1)">Next →</button>
     <button class="nav-btn" onclick="addPage()" title="Add a freeform page">📄 + Page</button>
   </div>
+  <div id="timeline-slider-wrap" style="padding:2px 16px 4px;text-align:center;">
+    <input type="range" id="timeline-slider" style="width:100%;appearance:none;-webkit-appearance:none;height:4px;background:#1a0a2e;border-radius:2px;outline:none;cursor:pointer;" oninput="onTimelineSlide(this.value)">
+  </div>
   <div class="topbar-right">
     <div class="tb-btn" onclick="openModal('apps')"><span class="tb-icon">🎛️</span><span class="tb-lbl">Apps</span></div>
     <div class="tb-btn" onclick="openModal('settings')"><span class="tb-icon">⚙️</span><span class="tb-lbl">Settings</span></div>
@@ -466,10 +469,6 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
           <div id="hw2"></div>
         </div>
       </div>
-    </div>
-    <div id="timeline-slider-wrap" style="padding:4px 16px 8px;text-align:center;">
-      <div id="timeline-slider-label" style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#9a8ab0;margin-bottom:2px;"></div>
-      <input type="range" id="timeline-slider" style="width:100%;appearance:none;-webkit-appearance:none;height:4px;background:#1a0a2e;border-radius:2px;outline:none;cursor:pointer;" oninput="onTimelineSlide(this.value)">
     </div>
     <div id="center-apps"></div>
   </div><!-- /main-col -->
@@ -1907,7 +1906,7 @@ buildNotesList();
 
 // ── RETAINERS ──
 let retainers=(()=>{ try{return JSON.parse(localStorage.getItem('cmd_retainers')||'null');}catch(e){} return null; })()
-  ||[{id:'jar',emoji:'🍬',name:'Jar',type:'TikTok Shop',renewal:'2026-04-15',goal:30,fee:500,commission:'10%',color:'jar',tasks:[{t:'3 converting hooks',done:false,scrapped:false},{t:'Batch film system',done:false,scrapped:false},{t:'Post to TikTok/Reels/Shorts',done:false,scrapped:false}]},{id:'drdent',emoji:'🦷',name:'Dr. Dent',type:'AI Avatar',renewal:'2026-04-03',goal:30,fee:500,commission:'$100/sale',color:'drdent',tasks:[{t:'Script week 1',done:false,scrapped:false},{t:'HeyGen avatar setup',done:false,scrapped:false},{t:'Create affiliate links',done:false,scrapped:false},{t:'Set up socials + email',done:false,scrapped:false},{t:'Veo B-roll shots',done:false,scrapped:false}]},{id:'serene',emoji:'🌿',name:'Serene',type:'AI Avatar',renewal:'2026-05-01',goal:30,fee:0,commission:'15%',color:'serene',trackLives:true,tasks:[{t:'Go live today',done:false,scrapped:false},{t:'5 hook styles',done:false,scrapped:false},{t:'First sale tracked',done:true,scrapped:false}]},{id:'nativepeptides',emoji:'💉',name:'Native Peptides',type:'TikTok Shop',renewal:'2026-04-20',goal:30,fee:0,commission:'10%',color:'nativepeptides',tasks:[{t:'Longevity angle script',done:false,scrapped:false},{t:'2 weeks of scripts',done:false,scrapped:false},{t:'Cross-post system',done:false,scrapped:false}]}];
+  ||[{id:'jar',emoji:'🫙',name:'Jar',type:'TikTok Shop',renewal:'2026-04-15',goal:30,fee:500,commission:'10%',color:'jar',tasks:[{t:'3 converting hooks',done:false,scrapped:false},{t:'Batch film system',done:false,scrapped:false},{t:'Post to TikTok/Reels/Shorts',done:false,scrapped:false}]},{id:'drdent',emoji:'🦷',name:'Dr. Dent',type:'AI Avatar',renewal:'2026-04-03',goal:30,fee:500,commission:'$100/sale',color:'drdent',tasks:[{t:'Script week 1',done:false,scrapped:false},{t:'HeyGen avatar setup',done:false,scrapped:false},{t:'Create affiliate links',done:false,scrapped:false},{t:'Set up socials + email',done:false,scrapped:false},{t:'Veo B-roll shots',done:false,scrapped:false}]},{id:'serene',emoji:'🌿',name:'Serene',type:'AI Avatar',renewal:'2026-05-01',goal:30,fee:0,commission:'15%',color:'serene',trackLives:true,tasks:[{t:'Go live today',done:false,scrapped:false},{t:'5 hook styles',done:false,scrapped:false},{t:'First sale tracked',done:true,scrapped:false}]},{id:'nativepeptides',emoji:'💉',name:'Native Peptides',type:'TikTok Shop',renewal:'2026-04-20',goal:30,fee:0,commission:'10%',color:'nativepeptides',tasks:[{t:'Longevity angle script',done:false,scrapped:false},{t:'2 weeks of scripts',done:false,scrapped:false},{t:'Cross-post system',done:false,scrapped:false}]}];
 function saveRetainers(){ try{localStorage.setItem('cmd_retainers',JSON.stringify(retainers));}catch(e){} syncRetainersToSupabase(); }
 function cleanupRetainerTasks() {
   var lastCleanup = localStorage.getItem('cmd_ret_tasks_cleanup');

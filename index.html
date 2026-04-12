@@ -1381,7 +1381,7 @@ buildSchedList();
 // ══════════════════════════════════════════
 
 let appState = (()=>{ try{return JSON.parse(localStorage.getItem('cmd_apps')||'null');}catch(e){} return null; })()
-  || { retainer:true, wotd:false, wcal:false, wcalLoc:'dashboard', journal:false };
+  || { retainer:true, wotd:false, wcal:false, wcalLoc:'dashboard', journal:false, schedule:false };
 function saveAppState(){ try{localStorage.setItem('cmd_apps',JSON.stringify(appState));}catch(e){} syncAppStateToSupabase(); }
 
 function toggleApp(app, btn) {
@@ -1407,6 +1407,7 @@ function buildCenterApps() {
   if(appState.journal)  html+=buildJournalHTML();
   if(appState.wotd)     html+=buildWOTDHTML();
   if(appState.wcal && appState.wcalLoc==='dashboard') html+=buildWeeklyCalHTML();
+  if(appState.schedule) html+=buildScheduleHTML();
   el.innerHTML=html;
   setTimeout(function(){ el.querySelectorAll('textarea').forEach(function(ta){ if(ta.value) autoGrowJournal(ta); }); }, 0);
   const chip=document.getElementById('brands-chip');
@@ -2061,6 +2062,101 @@ function buildJournalHTML() {
   '</div>';
 }
 
+// ── SCHEDULE APP ──
+function loadScheduleBlocks() {
+  try { return JSON.parse(localStorage.getItem('cmd_schedule_blocks') || 'null'); } catch(e) { return null; }
+}
+function getScheduleBlocks() {
+  return loadScheduleBlocks() || [
+    { id: 'sb_1', name: 'Morning' },
+    { id: 'sb_2', name: 'Afternoon' }
+  ];
+}
+function saveScheduleBlocks(blocks) {
+  try { localStorage.setItem('cmd_schedule_blocks', JSON.stringify(blocks)); } catch(e) {}
+}
+function getSchedKey(blockId, weekMs, dow) {
+  return 'cmd_sched_' + blockId + '_' + weekMs + '_' + dow;
+}
+function loadSchedCell(blockId, weekMs, dow) {
+  try { return localStorage.getItem(getSchedKey(blockId, weekMs, dow)) || ''; } catch(e) { return ''; }
+}
+function saveSchedCell(blockId, weekMs, dow, text) {
+  try { localStorage.setItem(getSchedKey(blockId, weekMs, dow), text); } catch(e) {}
+}
+function addScheduleBlock() {
+  var name = prompt('Block name:');
+  if (!name || !name.trim()) return;
+  var blocks = getScheduleBlocks();
+  blocks.push({ id: 'sb_' + Date.now(), name: name.trim() });
+  saveScheduleBlocks(blocks);
+  buildCenterApps();
+}
+function renameScheduleBlock(id) {
+  var blocks = getScheduleBlocks();
+  var b = blocks.find(function(x) { return x.id === id; });
+  if (!b) return;
+  var name = prompt('Rename block:', b.name);
+  if (!name || !name.trim()) return;
+  b.name = name.trim();
+  saveScheduleBlocks(blocks);
+  buildCenterApps();
+}
+function deleteScheduleBlock(id) {
+  if (!confirm('Delete this block?')) return;
+  var blocks = getScheduleBlocks().filter(function(x) { return x.id !== id; });
+  saveScheduleBlocks(blocks);
+  buildCenterApps();
+}
+function buildScheduleHTML() {
+  var sunday = new Date(currentMs);
+  var days = getWeekDays(sunday);
+  var blocks = getScheduleBlocks();
+  var todayDow = now.getDay();
+  var isCurrent = currentMs === todayMs;
+
+  var headerCols = days.map(function(d) {
+    var isToday = isCurrent && d.dow === todayDow;
+    return '<div style="text-align:center;padding:6px 2px;font-size:10px;font-weight:700;color:' + (isToday ? '#00cfff' : '#fff') + ';border-left:1px solid #ffffff15;">' +
+      d.name + '<br><span style="font-size:13px;font-family:Righteous,sans-serif;">' + d.date + '</span></div>';
+  }).join('');
+
+  var rows = blocks.map(function(block) {
+    var cells = days.map(function(d) {
+      var val = loadSchedCell(block.id, currentMs, d.dow);
+      var isToday = isCurrent && d.dow === todayDow;
+      return '<div style="border-left:1px solid rgba(0,0,0,0.08);border-top:1px solid rgba(0,0,0,0.06);padding:4px;background:' + (isToday ? 'rgba(0,207,255,0.06)' : 'transparent') + ';">' +
+        '<textarea placeholder="—" oninput="this.style.height=\'auto\';this.style.height=this.scrollHeight+\'px\';saveSchedCell(\'' + block.id + '\',' + currentMs + ',' + d.dow + ',this.value)" style="width:100%;min-height:32px;border:none;background:transparent;font-family:DM Sans,sans-serif;font-size:11px;color:#1a0a2e;outline:none;resize:none;overflow:hidden;line-height:1.4;padding:2px;">' + val.replace(/</g, '&lt;') + '</textarea>' +
+      '</div>';
+    }).join('');
+
+    return '<div style="display:contents;">' +
+      '<div style="background:#1a0a2e;padding:6px 8px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid #ffffff15;">' +
+        '<span style="font-size:11px;font-weight:700;color:#c4a0ff;letter-spacing:1px;text-transform:uppercase;cursor:pointer;" onclick="renameScheduleBlock(\'' + block.id + '\')">' + block.name + '</span>' +
+        '<span onclick="deleteScheduleBlock(\'' + block.id + '\')" style="font-size:10px;color:#9a8ab0;cursor:pointer;opacity:0.6;">✕</span>' +
+      '</div>' +
+      cells +
+    '</div>';
+  }).join('');
+
+  var subtitle = currentMs === todayMs ? 'Current Week' : weekLabel(currentMs, todayMs);
+
+  return '<div style="margin:10px auto;border:2px solid #1a0a2e;border-radius:9px;overflow:hidden;box-shadow:2px 2px 0 #1a0a2e;">' +
+    '<div style="background:#1a0a2e;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">' +
+      '<span style="font-family:Righteous,sans-serif;font-size:14px;color:#fff;letter-spacing:2px;">🗓️ SCHEDULE</span>' +
+      '<div style="display:flex;align-items:center;gap:8px;">' +
+        '<span style="font-size:10px;color:#9a8ab0;">' + subtitle + '</span>' +
+        '<button onclick="addScheduleBlock()" style="background:#ffffff14;border:1px solid #ffffff33;border-radius:5px;padding:2px 8px;font-size:12px;font-weight:700;color:#c4a0ff;cursor:pointer;font-family:DM Sans,sans-serif;">+</button>' +
+      '</div>' +
+    '</div>' +
+    '<div style="display:grid;grid-template-columns:100px repeat(7,1fr);background:#fff;">' +
+      '<div style="background:#1a0a2e;padding:6px 8px;"></div>' +
+      headerCols +
+      rows +
+    '</div>' +
+  '</div>';
+}
+
 function buildWOTDHTML(){ const w=WOTD[new Date().getDate()%WOTD.length]; return `<div class="wotd-card"><div class="wotd-lang">🇯🇵 Word of the Day</div><div class="wotd-word">${w.word}</div><div class="wotd-reading">${w.reading}</div><div class="wotd-meaning">${w.meaning}</div><div class="wotd-sentence">${w.sentence}</div><div class="wotd-en">${w.en}</div></div>`; }
 
 function buildWeeklyCalHTML(){
@@ -2076,7 +2172,7 @@ buildSidebarMG();
 render();
 setTimeout(syncMGAll, 0);
 buildCenterApps();
-['retainer','wotd','wcal','journal'].forEach(app=>{ const btn=document.getElementById('tog-'+app); if(btn){btn.classList.toggle('on',!!appState[app]);btn.classList.toggle('off',!appState[app]);} });
+['retainer','wotd','wcal','journal','schedule'].forEach(app=>{ const btn=document.getElementById('tog-'+app); if(btn){btn.classList.toggle('on',!!appState[app]);btn.classList.toggle('off',!appState[app]);} });
 setWcalLoc(appState.wcalLoc||'dashboard');
 
 
@@ -2295,6 +2391,11 @@ function deleteRetTask() {
       <div class="app-icon">📓</div>
       <div><div class="app-name">Journal</div><div class="app-desc">Daily journal entries for each day of the week.</div></div>
       <button class="app-toggle off" id="tog-journal" onclick="toggleApp('journal',this)"></button>
+    </div>
+    <div class="app-item">
+      <div class="app-icon">🗓️</div>
+      <div><div class="app-name">Schedule</div><div class="app-desc">Weekly time blocks — plan your routine.</div></div>
+      <button class="app-toggle off" id="tog-schedule" onclick="toggleApp('schedule',this)"></button>
     </div>
     <div class="app-sub">Weekly Calendar location</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">

@@ -994,6 +994,7 @@ const ctxMenu = document.createElement('div');
 ctxMenu.style.cssText = 'position:fixed;background:#1a0a2e;border:1.5px solid #ff6b9d;border-radius:8px;padding:4px;z-index:9999;display:none;box-shadow:0 8px 24px rgba(0,0,0,0.5);min-width:140px;';
 ctxMenu.innerHTML = '<div onclick="editTask()" style="padding:7px 14px;font-size:12px;font-weight:600;color:#e0d0ff;cursor:pointer;border-radius:5px;" onmouseover="this.style.background=\'#ffffff14\'" onmouseout="this.style.background=\'\'">✏️ Edit</div>' +
   '<div onclick="openMoveModal()" style="padding:7px 14px;font-size:12px;font-weight:600;color:#e0d0ff;cursor:pointer;border-radius:5px;" onmouseover="this.style.background=\'#ffffff14\'" onmouseout="this.style.background=\'\'">📦 Move to...</div>' +
+  '<div onclick="repeatTaskForWeek();closeCtx()" style="padding:7px 14px;font-size:12px;font-weight:600;color:#00cfff;cursor:pointer;border-radius:5px;" onmouseover="this.style.background=\'#ffffff14\'" onmouseout="this.style.background=\'\'">🔁 Repeat for week</div>' +
   '<div onclick="deleteTask(ctxDow,ctxSec,ctxId);closeCtx()" style="padding:7px 14px;font-size:12px;font-weight:600;color:#ff6b9d;cursor:pointer;border-radius:5px;" onmouseover="this.style.background=\'rgba(255,107,157,0.15)\'" onmouseout="this.style.background=\'\'">🗑 Delete</div>';
 document.body.appendChild(ctxMenu);
 
@@ -1010,6 +1011,25 @@ function editTask() {
   if (newText.trim() === '') { deleteTask(ctxDow, ctxSec, ctxId); return; }
   t.t = newText.trim();
   if (t.text) t.text = newText.trim();
+  try { localStorage.setItem('cmd_data', JSON.stringify(all)); } catch(e) {}
+  render();
+}
+
+// Repeat task for all 7 days
+function repeatTaskForWeek() {
+  var all = loadData();
+  var wd = all[currentMs]; if (!wd) return;
+  var srcDay = wd.days[ctxDow]; if (!srcDay) return;
+  var t = srcDay[ctxSec].find(function(x) { return x.id === ctxId; });
+  if (!t) return;
+  for (var d = 0; d < 7; d++) {
+    if (d === ctxDow) continue;
+    var dayData = wd.days[d]; if (!dayData) continue;
+    var already = dayData[ctxSec].some(function(x) { return (x.t || x.text) === (t.t || t.text); });
+    if (!already) {
+      dayData[ctxSec].push({ id: ctxSec.substring(0,2) + d + '_' + Date.now() + '_' + Math.random().toString(36).substring(2,5), t: t.t || t.text, done: false, scrapped: false, imp: !!t.imp });
+    }
+  }
   try { localStorage.setItem('cmd_data', JSON.stringify(all)); } catch(e) {}
   render();
 }
@@ -1441,7 +1461,6 @@ function buildCenterApps() {
   if(appState.retainer) html+=buildRetainerHTML();
   if(appState.journal)  html+=buildJournalHTML();
   if(appState.wotd)     html+=buildWOTDHTML();
-  if(appState.wcal && appState.wcalLoc==='dashboard') html+=buildWeeklyCalHTML();
   if(appState.schedule) html+=buildScheduleHTML();
   el.innerHTML=html;
   setTimeout(function(){ el.querySelectorAll('textarea').forEach(function(ta){ if(ta.value) autoGrowJournal(ta); }); }, 0);
@@ -2337,7 +2356,7 @@ render();
 initTimelineSlider();
 setTimeout(syncMGAll, 0);
 buildCenterApps();
-['retainer','wotd','wcal','journal','schedule'].forEach(app=>{ const btn=document.getElementById('tog-'+app); if(btn){btn.classList.toggle('on',!!appState[app]);btn.classList.toggle('off',!appState[app]);} });
+['retainer','wotd','journal','schedule'].forEach(app=>{ const btn=document.getElementById('tog-'+app); if(btn){btn.classList.toggle('on',!!appState[app]);btn.classList.toggle('off',!appState[app]);} });
 setWcalLoc(appState.wcalLoc||'dashboard');
 
 
@@ -2548,11 +2567,6 @@ function deleteRetTask() {
       <button class="app-toggle off" id="tog-wotd" onclick="toggleApp('wotd',this)"></button>
     </div>
     <div class="app-item">
-      <div class="app-icon">📆</div>
-      <div><div class="app-name">Weekly Calendar</div><div class="app-desc">Time-grid view of your week.</div></div>
-      <button class="app-toggle off" id="tog-wcal" onclick="toggleApp('wcal',this)"></button>
-    </div>
-    <div class="app-item">
       <div class="app-icon">📓</div>
       <div><div class="app-name">Journal</div><div class="app-desc">Daily journal entries for each day of the week.</div></div>
       <button class="app-toggle off" id="tog-journal" onclick="toggleApp('journal',this)"></button>
@@ -2561,11 +2575,6 @@ function deleteRetTask() {
       <div class="app-icon">🗓️</div>
       <div><div class="app-name">Schedule</div><div class="app-desc">Weekly time blocks — plan your routine.</div></div>
       <button class="app-toggle off" id="tog-schedule" onclick="toggleApp('schedule',this)"></button>
-    </div>
-    <div class="app-sub">Weekly Calendar location</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;">
-      <button id="wcal-loc-dash" onclick="setWcalLoc('dashboard')" style="padding:6px 12px;border-radius:6px;border:1.5px solid #00cfff;background:rgba(0,207,255,0.15);color:#00cfff;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;cursor:pointer;">Dashboard</button>
-      <button id="wcal-loc-cal" onclick="setWcalLoc('calendar')" style="padding:6px 12px;border-radius:6px;border:1.5px solid #ffffff22;background:transparent;color:#9a8ab0;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;cursor:pointer;">Calendar popup</button>
     </div>
   </div>
 </div>

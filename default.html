@@ -1524,10 +1524,10 @@ function getCurrentMonthGoals() {
   var goals = loadMonthGoals(n.getFullYear(), n.getMonth());
   if (!goals) {
     goals = [
-      { t: 'Complete a big project', state: '' },
-      { t: 'Build a new habit', state: '' },
-      { t: 'Save money', state: '' },
-      { t: 'Learn something new', state: '' }
+      { t: 'Hop on new brand', state: 'done' },
+      { t: 'Make 2k commission', state: '' },
+      { t: 'Test notebook', state: '' },
+      { t: 'Study Claude', state: '' }
     ];
     saveMonthGoals(n.getFullYear(), n.getMonth(), goals);
   }
@@ -2584,10 +2584,10 @@ function deleteRetTask() {
     <div class="modal-title">🎯 Monthly Goals <button class="modal-close" onclick="closeModal('monthly')">✕</button></div>
     <div class="modal-sub">MARCH 2026 — Current</div>
     <div id="mg-modal-list">
-      <div class="mg-modal-row" data-mgid="mg0" onclick="cycleMG(this)"><div class="mg-modal-check"></div><div class="mg-modal-txt">Complete a big project</div></div>
-      <div class="mg-modal-row" data-mgid="mg1" onclick="cycleMG(this)"><div class="mg-modal-check"></div><div class="mg-modal-txt">Build a new habit</div></div>
-      <div class="mg-modal-row" data-mgid="mg2" onclick="cycleMG(this)"><div class="mg-modal-check"></div><div class="mg-modal-txt">Save money</div></div>
-      <div class="mg-modal-row" data-mgid="mg3" onclick="cycleMG(this)"><div class="mg-modal-check"></div><div class="mg-modal-txt">Learn something new</div></div>
+      <div class="mg-modal-row" data-mgid="mg0" onclick="cycleMG(this)"><div class="mg-modal-check done-this"></div><div class="mg-modal-txt">Hop on new brand</div></div>
+      <div class="mg-modal-row" data-mgid="mg1" onclick="cycleMG(this)"><div class="mg-modal-check"></div><div class="mg-modal-txt">Make 2k commission</div></div>
+      <div class="mg-modal-row" data-mgid="mg2" onclick="cycleMG(this)"><div class="mg-modal-check"></div><div class="mg-modal-txt">Test notebook</div></div>
+      <div class="mg-modal-row" data-mgid="mg3" onclick="cycleMG(this)"><div class="mg-modal-check"></div><div class="mg-modal-txt">Study Claude</div></div>
     </div>
     <div class="modal-add-row"><input class="modal-input" id="mg-inp" placeholder="Add monthly goal..." onkeydown="if(event.key==='Enter')addMG()"><button class="modal-add-btn" onclick="addMG()">Add</button></div>
     <div class="history-divider">2026 — All Months</div>

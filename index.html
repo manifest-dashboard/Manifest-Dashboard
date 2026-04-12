@@ -2108,7 +2108,30 @@ function deleteScheduleBlock(id) {
   saveScheduleBlocks(blocks);
   buildCenterApps();
 }
-function buildScheduleHTML() {
+var scheduleView = 'blocks';
+function setScheduleView(v) { scheduleView = v; buildCenterApps(); }
+
+function loadTimelineEvents() {
+  try { return JSON.parse(localStorage.getItem('cmd_timeline_' + currentMs) || '[]'); } catch(e) { return []; }
+}
+function saveTimelineEvents(events) {
+  try { localStorage.setItem('cmd_timeline_' + currentMs, JSON.stringify(events)); } catch(e) {}
+}
+function addTimelineEvent(dow, hour) {
+  var name = prompt('Event name:');
+  if (!name || !name.trim()) return;
+  var events = loadTimelineEvents();
+  events.push({ id: 'te_' + Date.now(), dow: dow, hour: hour, duration: 1, name: name.trim(), color: '#c4a0ff' });
+  saveTimelineEvents(events);
+  buildCenterApps();
+}
+function deleteTimelineEvent(id) {
+  var events = loadTimelineEvents().filter(function(e) { return e.id !== id; });
+  saveTimelineEvents(events);
+  buildCenterApps();
+}
+
+function buildBlocksGrid() {
   var sunday = new Date(currentMs);
   var days = getWeekDays(sunday);
   var blocks = getScheduleBlocks();
@@ -2139,21 +2162,111 @@ function buildScheduleHTML() {
     '</div>';
   }).join('');
 
+  return '<div style="display:grid;grid-template-columns:100px repeat(7,1fr);background:#fff;">' +
+    '<div style="background:#1a0a2e;padding:6px 8px;"></div>' +
+    headerCols +
+    rows +
+  '</div>';
+}
+
+function buildTimelineGrid() {
+  var sunday = new Date(currentMs);
+  var days = getWeekDays(sunday);
+  var todayDow = now.getDay();
+  var isCurrent = currentMs === todayMs;
+  var wakeHour = userSettings.wakeHour != null ? userSettings.wakeHour : 8;
+  var sleepHour = userSettings.sleepHour != null ? userSettings.sleepHour : 22;
+  var hours = [];
+  if (wakeHour < sleepHour) {
+    for (var h = wakeHour; h < sleepHour; h++) hours.push(h);
+  } else {
+    for (var h2 = wakeHour; h2 < 24; h2++) hours.push(h2);
+    for (var h3 = 0; h3 < sleepHour; h3++) hours.push(h3);
+  }
+
+  var events = loadTimelineEvents();
+
+  // Build shift entries lookup by dow+hour
+  var shiftMap = {};
+  schedEntries.forEach(function(s) {
+    var hr = parseInt(s.time.split(':')[0], 10);
+    shiftMap[s.dow + '_' + hr] = s;
+  });
+
+  var headerCols = days.map(function(d) {
+    var isToday = isCurrent && d.dow === todayDow;
+    return '<div style="text-align:center;padding:6px 2px;font-size:10px;font-weight:700;color:' + (isToday ? '#00cfff' : '#9a8ab0') + ';border-left:1px solid rgba(0,0,0,0.06);">' +
+      d.name + '<br><span style="font-size:12px;font-family:Righteous,sans-serif;">' + d.date + '</span></div>';
+  }).join('');
+
+  var rowsHTML = hours.map(function(hr) {
+    var label = hr === 0 ? '12am' : hr < 12 ? hr + 'am' : hr === 12 ? '12pm' : (hr - 12) + 'pm';
+    var cells = days.map(function(d) {
+      var isToday = isCurrent && d.dow === todayDow;
+      var cellBg = isToday ? 'rgba(0,207,255,0.04)' : 'transparent';
+      var content = '';
+
+      // Check for shift entries
+      var shift = shiftMap[d.dow + '_' + hr];
+      if (shift) {
+        content += '<div style="background:' + shift.color + '22;border-left:3px solid ' + shift.color + ';border-radius:3px;padding:2px 5px;font-size:9px;font-weight:700;color:' + shift.color + ';margin-bottom:2px;cursor:default;">' + shift.label + '</div>';
+      }
+
+      // Check for user events
+      events.forEach(function(ev) {
+        if (ev.dow === d.dow && ev.hour === hr) {
+          content += '<div onclick="event.stopPropagation();if(confirm(\'Delete: ' + ev.name.replace(/'/g, "\\'") + '?\'))deleteTimelineEvent(\'' + ev.id + '\')" style="background:' + ev.color + '33;border-left:3px solid ' + ev.color + ';border-radius:3px;padding:2px 5px;font-size:9px;font-weight:600;color:#1a0a2e;margin-bottom:2px;cursor:pointer;">' + ev.name + '</div>';
+        }
+      });
+
+      return '<div onclick="addTimelineEvent(' + d.dow + ',' + hr + ')" style="border-left:1px solid rgba(0,0,0,0.06);border-top:1px solid rgba(0,0,0,0.05);min-height:36px;padding:2px;background:' + cellBg + ';cursor:pointer;">' + content + '</div>';
+    }).join('');
+
+    return '<div style="text-align:right;padding:2px 6px;font-size:10px;color:#9a8ab0;border-top:1px solid rgba(0,0,0,0.05);line-height:36px;font-weight:600;">' + label + '</div>' + cells;
+  }).join('');
+
+  return '<div style="background:#fff;overflow-x:auto;">' +
+    '<div style="display:grid;grid-template-columns:50px repeat(7,1fr);min-width:500px;">' +
+      '<div style="padding:6px;"></div>' +
+      headerCols +
+      rowsHTML +
+    '</div>' +
+  '</div>';
+}
+
+function buildScheduleHTML() {
   var subtitle = currentMs === todayMs ? 'Current Week' : weekLabel(currentMs, todayMs);
 
+  var toggleBtn = function(label, val) {
+    var active = scheduleView === val;
+    return '<button onclick="setScheduleView(\'' + val + '\')" style="padding:3px 10px;border-radius:5px;border:1px solid ' + (active ? '#c4a0ff' : '#ffffff33') + ';background:' + (active ? 'rgba(196,160,255,0.2)' : '#ffffff14') + ';font-size:10px;font-weight:700;color:' + (active ? '#c4a0ff' : '#9a8ab0') + ';cursor:pointer;font-family:DM Sans,sans-serif;">' + label + '</button>';
+  };
+
+  var body = '';
+  if (scheduleView === 'blocks' || scheduleView === 'both') {
+    body += buildBlocksGrid();
+  }
+  if (scheduleView === 'both') {
+    body += '<div style="border-top:2px solid #1a0a2e;margin:0;"></div>';
+  }
+  if (scheduleView === 'timeline' || scheduleView === 'both') {
+    body += buildTimelineGrid();
+  }
+
   return '<div style="margin:10px auto;border:2px solid #1a0a2e;border-radius:9px;overflow:hidden;box-shadow:2px 2px 0 #1a0a2e;">' +
-    '<div style="background:#1a0a2e;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">' +
+    '<div style="background:#1a0a2e;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">' +
       '<span style="font-family:Righteous,sans-serif;font-size:14px;color:#fff;letter-spacing:2px;">🗓️ SCHEDULE</span>' +
+      '<div style="display:flex;align-items:center;gap:6px;">' +
+        toggleBtn('Blocks', 'blocks') +
+        toggleBtn('Timeline', 'timeline') +
+        toggleBtn('Both', 'both') +
+      '</div>' +
       '<div style="display:flex;align-items:center;gap:8px;">' +
         '<span style="font-size:10px;color:#9a8ab0;">' + subtitle + '</span>' +
         '<button onclick="addScheduleBlock()" style="background:#ffffff14;border:1px solid #ffffff33;border-radius:5px;padding:2px 8px;font-size:12px;font-weight:700;color:#c4a0ff;cursor:pointer;font-family:DM Sans,sans-serif;">+</button>' +
       '</div>' +
     '</div>' +
-    '<div style="display:grid;grid-template-columns:100px repeat(7,1fr);background:#fff;">' +
-      '<div style="background:#1a0a2e;padding:6px 8px;"></div>' +
-      headerCols +
-      rows +
-    '</div>' +
+    body +
   '</div>';
 }
 

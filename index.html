@@ -113,6 +113,8 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
 .add-task-btn:hover{background:rgba(255,255,255,0.9);border-color:var(--neon);color:var(--dark);box-shadow:0 0 0 2px rgba(0,207,255,0.3);}
 .add-task-input{flex:1;background:rgba(255,255,255,0.85);border:1px solid rgba(0,0,0,0.15);border-radius:4px;padding:3px 6px;font-family:'DM Sans',sans-serif;font-size:10px;color:var(--dark);outline:none;display:none;}
 .add-task-input.visible{display:block;}
+#timeline-slider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#00cfff;border:2px solid #1a0a2e;cursor:pointer;box-shadow:0 0 0 2px rgba(0,207,255,0.3);}
+#timeline-slider::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#00cfff;border:2px solid #1a0a2e;cursor:pointer;box-shadow:0 0 0 2px rgba(0,207,255,0.3);}
 .gi{display:flex;align-items:flex-start;gap:5px;font-size:11px;font-weight:600;color:#000;padding:3px 18px 3px 0;border-bottom:1px dotted rgba(0,0,0,0.07);cursor:pointer;user-select:none;position:relative;}
 .gi:last-child{border-bottom:none;}
 .gi.done .gi-t{text-decoration:line-through;text-decoration-thickness:var(--strike-thick);}
@@ -464,6 +466,10 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
           <div id="hw2"></div>
         </div>
       </div>
+    </div>
+    <div id="timeline-slider-wrap" style="padding:4px 16px 8px;text-align:center;">
+      <div id="timeline-slider-label" style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#9a8ab0;margin-bottom:2px;"></div>
+      <input type="range" id="timeline-slider" style="width:100%;appearance:none;-webkit-appearance:none;height:4px;background:#1a0a2e;border-radius:2px;outline:none;cursor:pointer;" oninput="onTimelineSlide(this.value)">
     </div>
     <div id="center-apps"></div>
   </div><!-- /main-col -->
@@ -870,6 +876,33 @@ function goToday() {
   render();
   buildCenterApps();
 }
+function initTimelineSlider() {
+  var slider = document.getElementById('timeline-slider');
+  if (!slider) return;
+  var totalWeeks = Math.round((LATEST - EARLIEST) / WEEK_MS);
+  slider.min = 0;
+  slider.max = totalWeeks;
+  slider.step = 1;
+  syncTimelineSlider();
+}
+function syncTimelineSlider() {
+  var slider = document.getElementById('timeline-slider');
+  var label = document.getElementById('timeline-slider-label');
+  if (!slider) return;
+  var idx = Math.round((currentMs - EARLIEST) / WEEK_MS);
+  slider.value = idx;
+  if (label) label.textContent = weekLabel(currentMs, todayMs);
+}
+function onTimelineSlide(val) {
+  var ms = EARLIEST + parseInt(val, 10) * WEEK_MS;
+  currentPageId = null;
+  currentMs = ms;
+  hidePageView();
+  render();
+  buildCenterApps();
+  var label = document.getElementById('timeline-slider-label');
+  if (label) label.textContent = weekLabel(currentMs, todayMs);
+}
 function showPage() {
   var pages = loadPages();
   var page = pages.find(function(p) { return p.id === currentPageId; });
@@ -1172,6 +1205,7 @@ function render() {
   buildSidebarChecklist();
   if(typeof buildWeeklyGoals==="function") buildWeeklyGoals();
   if(typeof syncMGAll==="function") syncMGAll();
+  syncTimelineSlider();
 }
 
 function buildDayRow(d, weekData, todayDow) {
@@ -2042,7 +2076,7 @@ function buildJournalHTML() {
         '<span style="font-family:Righteous,sans-serif;font-size:22px;line-height:1;color:' + (isToday ? 'var(--dark)' : '#8a7a5a') + ';' + (isToday ? '' : 'opacity:0.7;') + '">' + d.date + '</span>' +
       '</div>' +
       '<div style="padding:7px 8px;">' +
-        '<textarea placeholder="How was your day?" oninput="autoGrowJournal(this);saveJournalEntry(' + di.y + ',' + di.m + ',' + di.day + ',this.value)" style="width:100%;min-height:' + minH + ';height:auto;border:none;border-radius:4px;padding:6px;font-family:DM Sans,sans-serif;font-size:12px;color:#1a0a2e;outline:none;resize:none;overflow:hidden;line-height:1.5;background:rgba(255,255,255,0.3);box-sizing:border-box;display:block;">' + t.replace(/</g,'&lt;') + '</textarea>' +
+        '<textarea placeholder="' + (isToday ? 'How was your day?' : '') + '" oninput="autoGrowJournal(this);saveJournalEntry(' + di.y + ',' + di.m + ',' + di.day + ',this.value)" style="width:100%;min-height:' + minH + ';height:auto;border:none;border-radius:4px;padding:6px;font-family:DM Sans,sans-serif;font-size:12px;color:#1a0a2e;outline:none;resize:none;overflow:hidden;line-height:1.5;background:rgba(255,255,255,0.3);box-sizing:border-box;display:block;">' + t.replace(/</g,'&lt;') + '</textarea>' +
       '</div>' +
     '</div>';
   }
@@ -2299,6 +2333,7 @@ function buildWeeklyCalHTML(){
 // ── INIT APPS ──
 buildSidebarMG();
 render();
+initTimelineSlider();
 setTimeout(syncMGAll, 0);
 buildCenterApps();
 ['retainer','wotd','wcal','journal','schedule'].forEach(app=>{ const btn=document.getElementById('tog-'+app); if(btn){btn.classList.toggle('on',!!appState[app]);btn.classList.toggle('off',!appState[app]);} });

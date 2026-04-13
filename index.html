@@ -1,10 +1,10 @@
-<!-- Manifest Dashboard v18 -->
+<!-- My Dashboard v18 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>★ Manifest</title>
+<title>★ My Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Righteous&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" defer onerror="console.warn('Supabase CDN failed')"></script>
 <style>
@@ -74,6 +74,12 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
 .week-split{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
 .week-half{display:flex;flex-direction:column;gap:0;}
 .week-label{font-size:10px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:#9a8ab0;margin-bottom:4px;}
+.week-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.week-toolbar .wt-btn{background:#ffffff11;border:1px solid #ffffff22;border-radius:5px;padding:3px 10px;font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;color:#c8b8f0;cursor:pointer;transition:all 0.15s;letter-spacing:0.5px;}
+.week-toolbar .wt-btn:hover{background:#ffffff22;border-color:#c4a0ff;}
+.week-toolbar .wt-btn.danger{color:#ff6b9d;border-color:#ff6b9d44;}
+.week-toolbar .wt-btn.danger:hover{background:rgba(255,107,157,0.15);border-color:#ff6b9d;}
+.week-toolbar .wt-btn:disabled{opacity:0.3;cursor:default;pointer-events:none;}
 
 /* Column headers */
 .col-headers{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-bottom:4px;border:2px solid var(--dark);border-radius:5px;overflow:hidden;}
@@ -389,7 +395,7 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
 
 <div class="topbar">
   <div class="corner">
-    <div class="corner-logo">★ CMD</div>
+    <div class="corner-logo">★ My Dashboard</div>
     <div class="corner-day" id="c-day">SATURDAY</div>
     <div class="corner-date" id="c-date">March 28</div>
   </div>
@@ -449,7 +455,10 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
     <div class="page" id="week-view">
       <div class="week-split">
         <div class="week-half">
-          <div class="week-label">SUN — WED</div>
+          <div class="week-toolbar">
+            <div class="week-label" style="margin-bottom:0">SUN — WED</div>
+            <button class="wt-btn danger" onclick="clearWeek()" title="Clear all tasks for this week">Clear All</button>
+          </div>
           <div class="col-headers">
             <div class="col-h act">Activities</div>
             <div class="col-h stu">Study</div>
@@ -459,7 +468,13 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
           <div id="hw1"></div>
         </div>
         <div class="week-half">
-          <div class="week-label">THU — SAT</div>
+          <div class="week-toolbar">
+            <div class="week-label" style="margin-bottom:0">THU — SAT</div>
+            <div style="display:flex;gap:4px;">
+              <button class="wt-btn" id="undo-btn" onclick="undoAction()" disabled title="Undo">↩ Undo</button>
+              <button class="wt-btn" id="redo-btn" onclick="redoAction()" disabled title="Redo">↪ Redo</button>
+            </div>
+          </div>
           <div class="col-headers">
             <div class="col-h act">Activities</div>
             <div class="col-h stu">Study</div>
@@ -562,8 +577,8 @@ function showAuthUI() {
     overlay.style.cssText = 'position:fixed;inset:0;background:#1a0a2e;z-index:9999;display:flex;align-items:center;justify-content:center;';
     overlay.innerHTML = `
       <div style="background:#2d1060;border:2px solid #ff6b9d;border-radius:16px;padding:36px;width:360px;max-width:95vw;text-align:center;">
-        <div style="font-family:'Righteous',sans-serif;font-size:28px;color:#f9e000;margin-bottom:6px;">★ CMD</div>
-        <div style="font-size:12px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#c8b8f0;margin-bottom:28px;">Command Center</div>
+        <div style="font-family:'Righteous',sans-serif;font-size:28px;color:#f9e000;margin-bottom:6px;">★ My Dashboard</div>
+        <div style="font-size:12px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#c8b8f0;margin-bottom:28px;"></div>
         <div id="auth-error" style="font-size:12px;color:#ff6b9d;margin-bottom:12px;min-height:16px;"></div>
         <input id="auth-email" type="email" placeholder="Email" style="width:100%;background:#ffffff11;border:1px solid #ffffff22;border-radius:8px;padding:10px 14px;font-family:'DM Sans',sans-serif;font-size:14px;color:#fff;outline:none;margin-bottom:10px;">
         <input id="auth-pass" type="password" placeholder="Password" style="width:100%;background:#ffffff11;border:1px solid #ffffff22;border-radius:8px;padding:10px 14px;font-family:'DM Sans',sans-serif;font-size:14px;color:#fff;outline:none;margin-bottom:16px;"
@@ -744,10 +759,10 @@ function getWeekData(ms) {
 // Current week (Mar 23–29): in-progress — some done, some not
 // Next week (Mar 30–Apr 5): all fresh, nothing crossed off
 
-function seedIfEmpty(ms, days) {
+function seedIfEmpty(ms, days, weekGoals) {
   const all = loadData();
   if (all[ms]) return;
-  all[ms] = { weekGoals:[], journal:'', days };
+  all[ms] = { weekGoals: weekGoals || [], journal:'', days };
   try { localStorage.setItem('cmd_data', JSON.stringify(all)); } catch(e) {}
 }
 
@@ -781,6 +796,10 @@ seedIfEmpty(lastWeekMs, [
 ]);
 
 // Current week — in progress
+var defaultWeekGoals = [
+  { t: 'Give feedback', done: false, scrapped: false },
+  { t: 'Write something everyday', done: false, scrapped: false }
+];
 seedIfEmpty(todayMs, [
   { dow:0, act:[], stu:[], tsk:[{id:'cw0t0',t:'Rest & plan',done:false}], msc:[{id:'cw0m0',t:'Post Goli',done:false},{id:'cw0m1',t:'Post Dr. Dent',done:false},{id:'cw0m2',t:'Post Serene',done:false},{id:'cw0m3',t:'Post Native Peptides',done:false}] },
   { dow:1, act:[{id:'cw1a0',t:'Groceries run',done:false}], stu:[{id:'cw1s0',t:'Editing tutorial',done:false}], tsk:[{id:'cw1t0',t:'Goli scripts',done:false},{id:'cw1t1',t:'Reply emails',done:false}], msc:[{id:'cw1m0',t:'Workout',done:false},{id:'cw1m1',t:'Post Goli',done:false},{id:'cw1m2',t:'Post Dr. Dent',done:false},{id:'cw1m3',t:'Post Serene',done:false},{id:'cw1m4',t:'Post Native Peptides',done:false}] },
@@ -789,7 +808,7 @@ seedIfEmpty(todayMs, [
   { dow:4, act:[{id:'cw4a0',t:'Brand meeting',done:false,imp:true}], stu:[], tsk:[], msc:[{id:'cw4m0',t:'Post Goli',done:false},{id:'cw4m1',t:'Post Dr. Dent',done:false},{id:'cw4m2',t:'Post Serene',done:false},{id:'cw4m3',t:'Post Native Peptides',done:false}] },
   { dow:5, act:[{id:'cw5a0',t:'Brand meeting',done:false,imp:true}], stu:[], tsk:[], msc:[{id:'cw5m0',t:'Post Goli',done:false},{id:'cw5m1',t:'Post Dr. Dent',done:false},{id:'cw5m2',t:'Post Serene',done:false},{id:'cw5m3',t:'Post Native Peptides',done:false}] },
   { dow:6, act:[{id:'cw6a0',t:'Saturday errands',done:false,imp:true},{id:'cw6a1',t:'Weekly planning',done:false,imp:true}], stu:[{id:'cw6s0',t:'Research new angles',done:false}], tsk:[{id:'cw6t0',t:'Claude check-in',done:false,imp:true},{id:'cw6t1',t:'Set next week goals',done:false},{id:'cw6t2',t:'Reply brand emails',done:false}], msc:[{id:'cw6m0',t:'Post Goli',done:false},{id:'cw6m1',t:'Post Dr. Dent',done:false},{id:'cw6m2',t:'Post Serene',done:false},{id:'cw6m3',t:'Post Native Peptides',done:false}] },
-]);
+], defaultWeekGoals);
 
 // Next week (Mar 30 – Apr 5) — all fresh, nothing done
 seedIfEmpty(nextWeekMs, [
@@ -946,6 +965,67 @@ function deletePage() {
 }
 updatePageCount();
 
+// ── UNDO / REDO ──
+var undoStack = [];
+var redoStack = [];
+var MAX_UNDO = 30;
+
+function pushUndo() {
+  var all = loadData();
+  var snapshot = JSON.stringify(all[currentMs] || null);
+  undoStack.push({ ms: currentMs, data: snapshot });
+  if (undoStack.length > MAX_UNDO) undoStack.shift();
+  redoStack = [];
+  updateUndoRedoBtns();
+}
+
+function undoAction() {
+  if (!undoStack.length) return;
+  var entry = undoStack.pop();
+  var all = loadData();
+  redoStack.push({ ms: entry.ms, data: JSON.stringify(all[entry.ms] || null) });
+  if (entry.data === 'null') { delete all[entry.ms]; }
+  else { all[entry.ms] = JSON.parse(entry.data); }
+  try { localStorage.setItem('cmd_data', JSON.stringify(all)); } catch(e) {}
+  updateUndoRedoBtns();
+  render();
+}
+
+function redoAction() {
+  if (!redoStack.length) return;
+  var entry = redoStack.pop();
+  var all = loadData();
+  undoStack.push({ ms: entry.ms, data: JSON.stringify(all[entry.ms] || null) });
+  if (entry.data === 'null') { delete all[entry.ms]; }
+  else { all[entry.ms] = JSON.parse(entry.data); }
+  try { localStorage.setItem('cmd_data', JSON.stringify(all)); } catch(e) {}
+  updateUndoRedoBtns();
+  render();
+}
+
+function updateUndoRedoBtns() {
+  var u = document.getElementById('undo-btn');
+  var r = document.getElementById('redo-btn');
+  if (u) u.disabled = !undoStack.length;
+  if (r) r.disabled = !redoStack.length;
+}
+
+function clearWeek() {
+  var wd = getWeekData(currentMs);
+  var hasAny = wd.days.some(function(d) {
+    return (d.act && d.act.length) || (d.stu && d.stu.length) || (d.tsk && d.tsk.length) || (d.msc && d.msc.length);
+  });
+  if (!hasAny) return;
+  if (!confirm('Clear ALL tasks for this week? This can be undone.')) return;
+  pushUndo();
+  var all = loadData();
+  var w = all[currentMs];
+  if (!w) return;
+  w.days.forEach(function(d) { d.act = []; d.stu = []; d.tsk = []; d.msc = []; });
+  try { localStorage.setItem('cmd_data', JSON.stringify(all)); } catch(e) {}
+  render();
+}
+
 // ── TASK EDITING ──
 function saveTask(dow, sec, id, done) {
   const all = loadData();
@@ -958,6 +1038,7 @@ function saveTask(dow, sec, id, done) {
 }
 
 function addTask(dow, sec, text) {
+  pushUndo();
   const all = loadData();
   if (!all[currentMs]) all[currentMs] = { weekGoals:[], journal:'', days: Array.from({length:7}, (_,i) => ({dow:i, act:[], stu:[], tsk:[], msc:[]})) };
   const id = 'u' + Date.now() + Math.random().toString(36).slice(2,6);
@@ -967,6 +1048,7 @@ function addTask(dow, sec, text) {
 }
 
 function deleteTask(dow, sec, id) {
+  pushUndo();
   const all = loadData();
   const wd = all[currentMs];
   if (!wd) return;
@@ -976,6 +1058,7 @@ function deleteTask(dow, sec, id) {
 }
 
 function cycleTask(dow, sec, id) {
+  pushUndo();
   const all = loadData();
   const wd = all[currentMs];
   if (!wd) return;
@@ -1011,6 +1094,7 @@ function editTask() {
   var newText = prompt('Edit task:', t.t || t.text || '');
   if (newText === null) return;
   if (newText.trim() === '') { deleteTask(ctxDow, ctxSec, ctxId); return; }
+  pushUndo();
   t.t = newText.trim();
   if (t.text) t.text = newText.trim();
   try { localStorage.setItem('cmd_data', JSON.stringify(all)); } catch(e) {}
@@ -1019,6 +1103,7 @@ function editTask() {
 
 // Repeat task for all 7 days
 function repeatTaskForWeek() {
+  pushUndo();
   var all = loadData();
   var wd = all[currentMs]; if (!wd) return;
   var srcDay = wd.days[ctxDow]; if (!srcDay) return;
@@ -1094,6 +1179,7 @@ function closeMoveModal() {
 moveModal.addEventListener('click', function(e) { if (e.target === moveModal) closeMoveModal(); });
 
 function moveTaskTo(toDow, toSec, toIdx) {
+  pushUndo();
   var all = loadData();
   var wd = all[currentMs]; if (!wd) return;
   
@@ -1195,6 +1281,7 @@ function toggleWGImp(i) {
 }
 // ── IMPORTANCE TOGGLE ──
 function toggleImp(dow, sec, id) {
+  pushUndo();
   var all = loadData();
   var wd = all[currentMs];
   if (!wd) return;
@@ -1281,16 +1368,30 @@ const schedEntries = [
   {dow:0, time:'09:00', label:'Sun — Off',             color:'#9a8ab0'},
   {dow:6, time:'09:00', label:'Sat — Off',             color:'#9a8ab0'},
 ];
+function formatSchedTime(t) {
+  if (!t) return '';
+  var parts = t.split(':');
+  var h = parseInt(parts[0], 10);
+  var m = parts[1];
+  var ampm = h >= 12 ? 'pm' : 'am';
+  var h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  return m === '00' ? h12 + ampm : h12 + ':' + m + ampm;
+}
 function buildSchedList() {
   const todayDow = now.getDay();
   const sorted = [...schedEntries].sort((a,b) => a.dow !== b.dow ? a.dow - b.dow : a.time.localeCompare(b.time));
   document.getElementById('sched-list').innerHTML = sorted.map(e => {
     const active = e.dow === todayDow;
+    var timeStr = '';
+    if (e.time) {
+      timeStr = formatSchedTime(e.time);
+      if (e.endTime) timeStr += '–' + formatSchedTime(e.endTime);
+    }
     return `<div class="sched-item ${active?'active':''}">
       ${active
         ? '<div class="sched-tri"></div>'
         : `<div class="sched-dot" style="background:${e.color}"></div>`}
-      ${e.label}
+      <span>${e.label}${timeStr ? ' <span style="opacity:0.6;font-size:10px;">' + timeStr + '</span>' : ''}</span>
     </div>`;
   }).join('');
 }
@@ -2444,17 +2545,18 @@ function winCtx(e, i) {
 function openSchedEditor() {
   const list = document.getElementById('sched-editor-list');
   list.innerHTML = schedEntries.map((e,i) => `
-    <div style="display:grid;grid-template-columns:1fr 80px 1fr auto;gap:6px;align-items:center;margin-bottom:8px;">
+    <div style="display:grid;grid-template-columns:70px 80px 80px 1fr auto;gap:6px;align-items:center;margin-bottom:8px;">
       <select onchange="schedEntries[${i}].dow=+this.value;schedEntries[${i}].label=updateSchedLabel(${i})" style="background:#ffffff11;border:1px solid #ffffff22;border-radius:5px;padding:5px 8px;font-family:'DM Sans',sans-serif;font-size:12px;color:#fff;outline:none;">
         ${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map((d,j)=>`<option value="${j}" ${e.dow===j?'selected':''}>${d}</option>`).join('')}
       </select>
-      <input type="time" value="${e.time||'09:00'}" onchange="schedEntries[${i}].time=this.value" style="background:#ffffff11;border:1px solid #ffffff22;border-radius:5px;padding:5px 8px;font-family:'DM Sans',sans-serif;font-size:12px;color:#fff;outline:none;">
+      <input type="time" value="${e.time||'09:00'}" onchange="schedEntries[${i}].time=this.value" title="Start time" style="background:#ffffff11;border:1px solid #ffffff22;border-radius:5px;padding:5px 8px;font-family:'DM Sans',sans-serif;font-size:12px;color:#fff;outline:none;">
+      <input type="time" value="${e.endTime||''}" onchange="schedEntries[${i}].endTime=this.value" placeholder="End" title="End time" style="background:#ffffff11;border:1px solid #ffffff22;border-radius:5px;padding:5px 8px;font-family:'DM Sans',sans-serif;font-size:12px;color:#fff;outline:none;">
       <input value="${e.label}" placeholder="Label..." oninput="schedEntries[${i}].label=this.value" style="background:#ffffff11;border:1px solid #ffffff22;border-radius:5px;padding:5px 8px;font-family:'DM Sans',sans-serif;font-size:12px;color:#fff;outline:none;">
       <button onclick="schedEntries.splice(${i},1);openSchedEditor()" style="background:rgba(255,107,157,0.15);border:1px solid #ff6b9d;border-radius:5px;padding:5px 9px;color:#ff6b9d;cursor:pointer;font-size:12px;">✕</button>
     </div>`).join('');
 }
 function addSchedEntry() {
-  schedEntries.push({dow:new Date().getDay(),time:'09:00',label:'New entry',color:'#c4a0ff'});
+  schedEntries.push({dow:new Date().getDay(),time:'09:00',endTime:'17:00',label:'New entry',color:'#c4a0ff'});
   openSchedEditor();
 }
 function saveSchedEditor() {
@@ -2639,7 +2741,7 @@ function deleteRetTask() {
 
 
 <div class="modal-overlay" id="modal-sched-editor">
-  <div class="modal">
+  <div class="modal wide">
     <div class="modal-title">📅 Schedule Editor <button class="modal-close" onclick="closeModal('sched-editor')">✕</button></div>
     <div class="modal-sub">Your weekly schedule — sorted by day and time</div>
     <div id="sched-editor-list"></div>
@@ -2653,7 +2755,7 @@ function deleteRetTask() {
 <div class="modal-overlay" id="modal-settings">
   <div class="modal">
     <div class="modal-title">🛠 Settings <button class="modal-close" onclick="closeModal('settings')">✕</button></div>
-    <div class="modal-sub">Personalize your Command Center</div>
+    <div class="modal-sub">Personalize your Dashboard</div>
     <div style="margin-bottom:14px;">
       <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9a8ab0;margin-bottom:8px;">Sleep Schedule</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;">
